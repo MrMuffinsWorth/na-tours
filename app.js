@@ -118,17 +118,26 @@ const deleteUser = (req, res) => {
 //app.patch('/api/v1/tours/:id', updateTour)
 //app.delete('/api/v1/tours/:id', deleteTour)
 
-app.route('/api/v1/tours')
+const tourRouter = express.Router();
+
+// creates a sub application = mouting the router
+app.use('/api/v1/tours', tourRouter);
+
+tourRouter.route('/')
   .get(getAllTours)
   .post(createTour);
 
-app.route('/api/v1/tours/:id')
+tourRouter.route('/:id')
   .get(getTour)
   .patch(updateTour)
   .delete(deleteTour);
 
-app.route('/api/v1/users').get(getAllUsers).post(createUser);
-app.route('/api/v1/users/:id').get(getUser).patch(updateUser).delete(deleteUser);
+const userRouter = express.Router();
+
+app.use('/api/v1/users', userRouter);
+
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 
 const port = 3000;
 app.listen(port, () => {
