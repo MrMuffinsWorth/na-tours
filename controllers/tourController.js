@@ -15,7 +15,7 @@ exports.getAllTours = async (req, res) => {
     //console.log(req.query, queryObj);
     //FILTERTING
     let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`); //query params = ?duration[gte]=5
     console.log(JSON.parse(queryStr));
     let query = Tour.find(JSON.parse(queryStr));
     // { difficulty: 'easy', duration: {$gte: 5 }} - mongo filter object
@@ -37,6 +37,18 @@ exports.getAllTours = async (req, res) => {
     } else {
       query = query.select('-__v'); //minus is excluding fields
     }
+
+    //PAGINATION
+    //query = query.skip(2).limit(5) // query params = ?page=2&limit=5
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page does not exist');
+    }
+
     const tours = await query;
     res.status(200).json({
       status: 'success',
