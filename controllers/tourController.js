@@ -13,20 +13,30 @@ exports.getAllTours = async (req, res) => {
     excludedFields.forEach(el => delete queryObj[el]);
 
     //console.log(req.query, queryObj);
+    //FILTERTING
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
     console.log(JSON.parse(queryStr));
     let query = Tour.find(JSON.parse(queryStr));
     // { difficulty: 'easy', duration: {$gte: 5 }} - mongo filter object
 
+    //SORTING
     if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
+      const sortBy = req.query.sort.split(',').join(' ');// query params = ?sort=price,ratingAverage
       query.sort(sortBy);
       // sort('price ratingAverage')
     } else {
       query.sort('-createdAt'); // default sort
     }
 
+    //FIELD LIMITING
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');//?fields=name,duration,difficulty,price
+      //query = query.select('name duration price') called projecting
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v'); //minus is excluding fields
+    }
     const tours = await query;
     res.status(200).json({
       status: 'success',
