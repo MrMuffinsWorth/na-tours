@@ -23,6 +23,8 @@ exports.getAllTours = async (req, res) => {
       const sortBy = req.query.sort.split(',').join(' ');
       query.sort(sortBy);
       // sort('price ratingAverage')
+    } else {
+      query.sort('-createdAt'); // default sort
     }
 
     const tours = await query;
