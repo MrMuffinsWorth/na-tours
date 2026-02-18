@@ -9,6 +9,7 @@ const userRouter = require('./routes/userRoutes');
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+app.set('query parser', 'extended'); // required for advanced mongo url param filtering
 
 app.use(express.json());
 
