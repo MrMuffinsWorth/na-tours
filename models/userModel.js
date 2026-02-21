@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs'); // bcrypt native may be better than bcryptjs
+const catchAsync = require('../utils/catchAsync');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -32,6 +34,13 @@ const userSchema = new mongoose.Schema({
     }
   }
 })
+
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
+
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+});
 
 const User = mongoose.model('User', userSchema);
 
