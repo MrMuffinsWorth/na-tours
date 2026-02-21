@@ -4,6 +4,28 @@ const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}`
   return new AppError(message, 400)
 }
+
+const handleDuplicateFieldsDB = (err) => {
+  // Prefer structured info from newer Mongo/Mongoose versions.
+  if (err.keyValue && typeof err.keyValue === 'object') {
+    const fields = Object.entries(err.keyValue)
+      .map(([key, val]) => `${key}: ${val}`)
+      .join(', ');
+    const message = `Duplicate field value: ${fields}. Please use another value.`;
+    return new AppError(message, 400);
+  }
+
+  // Fallback to parsing the message if available.
+  if (typeof err.message === 'string') {
+    const match = err.message.match(/(["'])(\\?.)*?\1/);
+    if (match && match[0]) {
+      const message = `Duplicate field value: ${match[0]}. Please use another value.`;
+      return new AppError(message, 400);
+    }
+  }
+
+  return new AppError('Duplicate field value. Please use another value.', 400);
+}
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -39,7 +61,8 @@ module.exports = (err, req, res, next) => {
     let error = { ...err };
     error.name = err.name;
     error.message = err.message;
-    if (error.name === 'CastError') error = handleCastErrorDB(err)
+    if (error.name === 'CastError') error = handleCastErrorDB(error);
+    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     sendErrorProd(error, res);
   }
 };
