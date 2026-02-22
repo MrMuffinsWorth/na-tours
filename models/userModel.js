@@ -52,7 +52,12 @@ userSchema.pre('save', async function() {
   this.passwordConfirm = undefined;
 });
 
-//instance meth a collection can use
+userSchema.pre('save', function() {
+  if (!this.isModified('password') || this.isNew) return;
+  this.passwordChangedAt = Date.now() - 1000; // sometimes the db is slower than the token being generated
+})
+
+//instance methods are on all documents on a collection can use
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
 }
