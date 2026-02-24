@@ -2,6 +2,7 @@ const fs = require('fs');
 const AppError = require('./utils/appError');
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const app = express();
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
@@ -11,6 +12,15 @@ const globalErrorHandler = require('./controllers/errorController')
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+const limiter = rateLimit({
+  max: 100,  // 100 requests
+  windowMs: 60 * 60 * 1000, // 1 hour
+  message: 'Too many requests from this IP, please try again in an hour!'
+});
+
+app.use('/api', limiter); // puts rate limit on all of the api routes
+
 app.set('query parser', 'extended'); // required for advanced mongo url param filtering
 
 app.use(express.json());
