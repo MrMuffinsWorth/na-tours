@@ -42,7 +42,12 @@ const userSchema = new mongoose.Schema({
   },
   passwordChangedAt: Date,
   passwordResetToken: String,
-  passwordResetExpires: Date
+  passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false
+  }
 })
 
 userSchema.pre('save', async function() {
@@ -55,6 +60,11 @@ userSchema.pre('save', async function() {
 userSchema.pre('save', function() {
   if (!this.isModified('password') || this.isNew) return;
   this.passwordChangedAt = Date.now() - 1000; // sometimes the db is slower than the token being generated
+})
+
+// find gets all different types of find
+userSchema.pre(/^find/, function() {
+  this.find({ active: { $ne: false } });
 })
 
 //instance methods are on all documents on a collection can use
