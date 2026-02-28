@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+const { clean } = require('xss-clean/lib/xss');
 const hpp = require('hpp');
 const app = express();
 const tourRouter = require('./routes/tourRoutes');
@@ -35,10 +35,39 @@ app.set('query parser', 'extended'); // required for advanced mongo url param fi
 app.use(express.json({ limit: '10kb' })); // allows body to only be 10kb
 
 // Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.headers) mongoSanitize.sanitize(req.headers);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+});
 
 // Data sanitization against XSS attacks 
-app.use(xss());
+const sanitizeXssInPlace = obj => {
+  if (!obj || typeof obj !== 'object') return;
+  Object.keys(obj).forEach(key => {
+    const value = obj[key];
+    if (Array.isArray(value)) {
+      value.forEach(item => sanitizeXssInPlace(item));
+      return;
+    }
+    if (value && typeof value === 'object') {
+      sanitizeXssInPlace(value);
+      return;
+    }
+    if (typeof value === 'string') {
+      obj[key] = clean(value);
+    }
+  });
+};
+
+app.use((req, res, next) => {
+  sanitizeXssInPlace(req.body);
+  sanitizeXssInPlace(req.query);
+  sanitizeXssInPlace(req.params);
+  next();
+});
 
 // Prevent parameter pollution
 app.use(hpp({
