@@ -1,9 +1,14 @@
 const tourController = require('./../controllers/tourController');
 const authController = require('./../controllers/authController');
-const reviewController = require('./../controllers/reviewController');
+const reviewRouter = require('./../routes/reviewRoutes');
 const express = require('express');
 
 const router = express.Router();
+
+// directs the flow of this route into the review router to handle the createReview route since it is nested
+// mounts the review router in the tour router
+router.use('/:tourId/reviews', reviewRouter);
+
 
 router.route('/top-5-cheap').get(tourController.aliasTopTours, tourController.getAllTours)
 
@@ -20,7 +25,7 @@ router.route('/:id')
   .patch(tourController.updateTour)
   .delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour);
 
-router.route('/:tourId/reviews')
-  .post(authController.protect, authController.restrictTo('user'), reviewController.createReview)
+//router.route('/:tourId/reviews')
+// .post(authController.protect, authController.restrictTo('user'), reviewController.createReview)
 
 module.exports = router;
