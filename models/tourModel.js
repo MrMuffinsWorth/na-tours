@@ -107,7 +107,6 @@ const tourSchema = new mongoose.Schema({
       ref: 'User'
     }
   ]
-
 }, {
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
@@ -117,6 +116,13 @@ const tourSchema = new mongoose.Schema({
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
+
+// has access to the child references but does not persist in DB
+tourSchema.virtual('reviews', {
+  ref: 'Review', // model that contains the parent reference
+  foreignField: 'tour', // child reference field name
+  localField: '_id' // id field for this scema
+})
 
 // document middleware: runs before .save() and .create() or pre save hook
 tourSchema.pre('save', function() {
