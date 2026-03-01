@@ -74,6 +74,9 @@ exports.getReview = catchAsync(async (req, res, next) => {
 })
 
 exports.createReview = catchAsync(async (req, res, next) => {
+  // allow nested routes
+  if (!req.body.tour) req.body.tour = req.params.tourId; // this is for when the route does not have the tour just the /reviews route
+  if (!req.body.user) req.body.user = req.user.id; // this is for when the user is not specified it pulls it from the auth middleware since it is protected
   const newReview = await Review.create(req.body);
   res.status(201).json({
     status: 'success',

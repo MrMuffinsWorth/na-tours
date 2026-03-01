@@ -117,6 +117,7 @@ tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
 
+// Virtual Populates
 // has access to the child references but does not persist in DB
 tourSchema.virtual('reviews', {
   ref: 'Review', // model that contains the parent reference
