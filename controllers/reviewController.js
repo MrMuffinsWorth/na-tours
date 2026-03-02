@@ -2,6 +2,7 @@ const AppError = require('./../utils/appError');
 const Review = require('./../models/reviewModel');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('../utils/apiFeatures');
+const factory = require('./handlerFactory');
 
 // API level defense for ensuring that the reviews are in the correct shape
 /*const trimPopulatedReview = review => {
@@ -87,3 +88,5 @@ exports.createReview = catchAsync(async (req, res, next) => {
     }
   })
 });
+
+exports.deleteReview = factory.deleteOne(Review);
