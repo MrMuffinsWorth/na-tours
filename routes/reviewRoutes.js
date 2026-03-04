@@ -6,10 +6,11 @@ const router = express.Router({ mergeParams: true }); // mergeParams will grab t
 
 router.route('/')
   .get(reviewController.getAllReviews)
-  .post(authController.protect, authController.restrictTo('user'), reviewController.createReview)
+  .post(authController.protect, authController.restrictTo('user', 'admin'), reviewController.setTourUserIds, reviewController.createReview)
 
 router.route('/:id')
   .get(reviewController.getReview)
+  .patch(reviewController.updateReview)
   .delete(reviewController.deleteReview)
 
 module.exports = router

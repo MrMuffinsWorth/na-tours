@@ -26,67 +26,16 @@ const factory = require('./handlerFactory');
   return review;
 };*/
 
-exports.getAllReviews = catchAsync(async (req, res, next) => {
-  let filter = {};
-  if (req.params.tourId) filter = { tour: req.params.tourId };
-  const features = new APIFeatures(Review.find(filter), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate()
+exports.getAllReviews = factory.getAll(Review, { path: 'user', select: { name: 1, photo: 1 } });
+exports.getReview = factory.getOne(Review);
 
-  // doing the lean and populate here are a better way to select the fields that are wanted from the route instead of a mongoose pre function on the find methods
-  const reviews = await features.query
-    .lean() // converts the query results into a plain JS object
-    .populate({ // populate in the controller avoids mongoose schema version weirdness
-      path: 'user',
-      select: { name: 1, photo: 1 }
-    });
-
-  //reviews.forEach(trimPopulatedReview);
-
-  res.status(200).json({
-    status: 'success',
-    results: reviews.length,
-    data: {
-      reviews
-    }
-  })
-});
-
-exports.getReview = catchAsync(async (req, res, next) => {
-  const review = await Review.findById(req.params.id)
-    .lean()
-    .populate({
-      path: 'tour',
-      select: { name: 1 }
-    })
-    .populate({
-      path: 'user',
-      select: { name: 1, photo: 1 }
-    });
-  if (!review) return next(new AppError('No review found with that ID.', 404));
-
-  trimPopulatedReview(review);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      review
-    }
-  })
-})
-
-exports.createReview = catchAsync(async (req, res, next) => {
+exports.setTourUserIds = (req, res, next) => {
   // allow nested routes
   if (!req.body.tour) req.body.tour = req.params.tourId; // this is for when the route does not have the tour just the /reviews route
   if (!req.body.user) req.body.user = req.user.id; // this is for when the user is not specified it pulls it from the auth middleware since it is protected
-  const newReview = await Review.create(req.body);
-  res.status(201).json({
-    status: 'success',
-    data: {
-      review: newReview
-    }
-  })
-});
+  next();
+}
 
+exports.createReview = factory.createOne(Review);
+exports.updateReview = factory.updateOne(Review);
 exports.deleteReview = factory.deleteOne(Review);
