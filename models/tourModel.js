@@ -112,6 +112,10 @@ const tourSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 })
 
+//tourSchema.index({ price: 1 }) // setting the price field as an index
+tourSchema.index({ price: 1, ratingsAverage: -1 }) // compound index will index all fields
+tourSchema.index({ slug: 1 });
+
 // cannot use virtual properties in queries
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
