@@ -10,7 +10,8 @@ const reviewSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'A review must have a rating.'],
     min: [1, 'Rating must be above 1.0'],
-    max: [5, 'Rating must be below 5.0']
+    max: [5, 'Rating must be below 5.0'],
+    set: val => Math.round(val * 10) / 10
   },
   createdAt: {
     type: Date,
@@ -45,15 +46,25 @@ reviewSchema.statics.calcAverageRatings = async function(tourId) {
       }
     }
   ]);
-  console.log(stats);
   await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRatings,
+    ratingsQuantity: stats[0].nRating,
     ratingsAverage: stats[0].avgRating
   })
 };
 
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.post('save', function() {
+
   this.constructor.calcAverageRatings(this.tour);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function() {
+  this.r = await this.model.findOne(this.getQuery());
+});
+
+reviewSchema.post(/^findOneAnd/, async function() {
+  if (this.r) await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);

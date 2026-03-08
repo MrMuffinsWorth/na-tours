@@ -115,6 +115,7 @@ const tourSchema = new mongoose.Schema({
 //tourSchema.index({ price: 1 }) // setting the price field as an index
 tourSchema.index({ price: 1, ratingsAverage: -1 }) // compound index will index all fields
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' })
 
 // cannot use virtual properties in queries
 tourSchema.virtual('durationWeeks').get(function() {
@@ -167,10 +168,9 @@ tourSchema.post(/^find/, function(docs) {
 })
 
 // aggregation middleware
-tourSchema.pre('aggregate', function() {
+/*tourSchema.pre('aggregate', function() {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this)
-})
+})*/
 
 const Tour = mongoose.model('Tour', tourSchema);
 
