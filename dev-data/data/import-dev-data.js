@@ -16,7 +16,7 @@ const reviews = JSON.parse(fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8')
 const importData = async () => {
   try {
     await Tour.create(tours);
-    await User.create(users, { validateBeforeSave: false });
+    await User.collection.insertMany(users, { ordered: true });
     await Review.create(reviews);
     console.log('Data successfully loaded');
     process.exit()
@@ -44,4 +44,3 @@ if (process.argv[2] === '--delete')
   deleteData();
 
 console.log(process.argv)
-

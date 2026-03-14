@@ -52,6 +52,11 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre('save', async function() {
   if (!this.isModified('password')) return;
+  const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(this.password);
+  if (isBcryptHash) {
+    this.passwordConfirm = undefined;
+    return;
+  }
 
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
@@ -69,7 +74,13 @@ userSchema.pre(/^find/, function() {
 
 //instance methods are on all documents on a collection can use
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+  if (!userPassword) return false;
+  const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(userPassword);
+  if (isBcryptHash) {
+    return await bcrypt.compare(candidatePassword, userPassword);
+  }
+  // Legacy fallback for older plain-text records created before hashing hooks were in place.
+  return candidatePassword === userPassword;
 }
 
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {

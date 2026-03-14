@@ -54,13 +54,12 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide email and password.', 400));
   }
   // Check if user exists && password is correct
-  const user = await User.findOne({ email }).select('+password'); // will add password to the fields
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+password'); // will add password to the fields
 
   if (!user || !await user.correctPassword(password, user.password)) {
     return next(new AppError('Incorrect email or password', 401));
   }
   // If everything is ok, send token to client
-  const token = signToken(user._id)
   createSendToken(user, 200, res)
 });
 
@@ -142,7 +141,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
   // update changedPasswordAt property for the user
   // log the user in
-  createSendToken(token, 200, res);
+  createSendToken(user, 200, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
