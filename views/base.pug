@@ -1,0 +1,18 @@
+doctype html 
+html 
+  head 
+    //- interpolation syntax
+    title NA Tours | #{tour}
+    link(rel='stylesheet' href='css/style.css') 
+    link(rel='shortcut icon' type='image/png' href='img/favicon.png')
+
+  body
+    //- buffered code - code that will change html
+    h1= tour 
+    h1= user.toUpperCase()
+    //- h1 The Park Camper 
+
+    //- unbuffered code - code that will not change html
+    - const x = 9;
+    h2= 2 * x
+    p This is just some text
